@@ -565,7 +565,7 @@ def chat():
         )
 
         chat_session = client.chats.create(
-            model='gemini-2.5-flash',
+            model='gemini-3.6-flash',
             config={
                 'system_instruction': system_instruction,
             }
