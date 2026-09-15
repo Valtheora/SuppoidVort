@@ -31,7 +31,7 @@ HTML_PAGE = """
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            height: 100dvh;
             margin: 0;
             overflow: hidden;
             transition: background 0.5s ease;
@@ -42,8 +42,10 @@ HTML_PAGE = """
             display: flex;
             flex-direction: column;
             background-color: var(--chat-bg);
-            height: 100vh;
+            height: 100dvh;
             width: 100vw;
+            overflow: hidden;
+            position: relative;
         }
 
         @media (min-width: 768px) {
@@ -66,10 +68,12 @@ HTML_PAGE = """
             justify-content: space-between;
             align-items: center;
             letter-spacing: 0.5px;
+            flex-shrink: 0;
         }
 
         .chat-box {
             flex: 1;
+            min-height: 0;
             overflow-y: auto;
             padding: 20px;
             display: flex;
@@ -136,6 +140,7 @@ HTML_PAGE = """
             display: flex;
             gap: 12px;
             border-top: 1px solid rgba(255,255,255,0.05);
+            flex-shrink: 0;
         }
 
         input {
@@ -189,7 +194,7 @@ HTML_PAGE = """
             gap: 15px;
             transition: transform 0.3s ease, width 0.3s ease;
             position: absolute;
-            height: 100vh;
+            height: 100dvh;
             z-index: 100;
             top: 0;
             left: 0;
@@ -525,7 +530,6 @@ HTML_PAGE = """
                     renderCurrentChat();
                 }
             } else {
-                start_new = true;
                 startNewChat();
             }
         };
