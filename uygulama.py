@@ -1,9 +1,8 @@
+import os
 from flask import Flask, render_template_string, request, jsonify
 from google import genai
 
 app = Flask(__name__)
-
-import os
 
 API_KEY = os.environ.get("GEMINI_API_KEY")
 client = genai.Client(api_key=API_KEY)
@@ -13,7 +12,7 @@ HTML_PAGE = """
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SuppoidVort</title>
     <style>
         :root {
@@ -44,18 +43,22 @@ HTML_PAGE = """
             flex-direction: column;
             background-color: var(--chat-bg);
             height: 100vh;
+            width: 100vw;
         }
 
         @media (min-width: 768px) {
             .chat-container {
                 height: 85vh;
+                width: auto;
+                flex: 1;
+                max-width: 900px;
                 border-radius: 16px;
                 border: 1px solid rgba(255,255,255,0.05);
             }
         }
 
         .chat-header {
-            padding: 20px;
+            padding: 15px 20px;
             font-size: 1.2rem;
             font-weight: 600;
             border-bottom: 1px solid rgba(255,255,255,0.05);
@@ -77,10 +80,11 @@ HTML_PAGE = """
         .message {
             padding: 12px 18px;
             border-radius: 12px;
-            max-width: 75%;
+            max-width: 80%;
             line-height: 1.5;
             font-size: 0.95rem;
             animation: fadeIn 0.3s ease;
+            word-break: break-word;
         }
 
         @keyframes fadeIn {
@@ -127,7 +131,7 @@ HTML_PAGE = """
         }
 
         .input-area {
-            padding: 20px;
+            padding: 15px 20px;
             background: rgba(0,0,0,0.1);
             display: flex;
             gap: 12px;
@@ -176,7 +180,7 @@ HTML_PAGE = """
         }
 
         .sidebar {
-            width: 240px;
+            width: 260px;
             background: #1a1a20;
             border-right: 1px solid rgba(255,255,255,0.05);
             display: flex;
@@ -184,7 +188,11 @@ HTML_PAGE = """
             padding: 20px;
             gap: 15px;
             transition: transform 0.3s ease, width 0.3s ease;
-            position: relative;
+            position: absolute;
+            height: 100vh;
+            z-index: 100;
+            top: 0;
+            left: 0;
         }
         .sidebar.closed {
             transform: translateX(-100%);
@@ -255,7 +263,7 @@ HTML_PAGE = """
     </style>
 </head>
 <body>
-    <div class="sidebar" id="sidebar">
+    <div class="sidebar closed" id="sidebar">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <button class="new-chat-btn" onclick="startNewChat()" style="flex: 1; margin-right: 10px;">+ New Chat</button>
             <button class="toggle-btn" onclick="toggleSidebar()">✕</button>
@@ -266,9 +274,11 @@ HTML_PAGE = """
     </div>
     
     <div class="chat-container" id="container">
-        <div class="chat-header" style="display: flex; align-items: center; gap: 15px;">
-            <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
-            <span>SuppoidVort</span>
+        <div class="chat-header">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+                <span>SuppoidVort</span>
+            </div>
         </div>
         <div class="chat-box" id="chatBox">
             <div class="message bot-message">Hey there... I'm SuppoidVort. This is your safe void. You can tell me whatever is on your mind, what's exhausting you or making you think. I'm listening, how are you feeling?</div>
@@ -305,6 +315,7 @@ HTML_PAGE = """
             saveToLocalStorage();
             renderChatList();
             renderCurrentChat();
+            if(window.innerWidth < 768) toggleSidebar();
         }
 
         function renderChatList() {
@@ -314,7 +325,10 @@ HTML_PAGE = """
                 const item = document.createElement('div');
                 item.className = 'chat-item' + (chat.id === currentChatId ? ' active' : '');
                 item.textContent = chat.title;
-                item.onclick = () => selectChat(chat.id);
+                item.onclick = () => {
+                    selectChat(chat.id);
+                    if(window.innerWidth < 768) toggleSidebar();
+                };
                 
                 item.oncontextmenu = (e) => {
                     e.preventDefault();
@@ -448,7 +462,6 @@ HTML_PAGE = """
             renderCurrentChat();
             renderChatList();
 
-            // Add typing indicator element
             const typingDiv = document.createElement('div');
             typingDiv.className = 'message bot-message typing-indicator';
             typingDiv.id = 'typingIndicator';
@@ -464,7 +477,6 @@ HTML_PAGE = """
                 });
                 const data = await response.json();
 
-                // Remove typing indicator
                 const indicator = document.getElementById('typingIndicator');
                 if (indicator) indicator.remove();
 
@@ -513,6 +525,7 @@ HTML_PAGE = """
                     renderCurrentChat();
                 }
             } else {
+                start_new = true;
                 startNewChat();
             }
         };
@@ -548,7 +561,7 @@ def chat():
         )
 
         chat_session = client.chats.create(
-            model='gemini-3.6-flash',
+            model='gemini-2.5-flash',
             config={
                 'system_instruction': system_instruction,
             }
